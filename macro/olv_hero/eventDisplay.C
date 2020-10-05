@@ -1,4 +1,4 @@
-void eventDisplay(TString inputDir = "output")
+void eventDisplay(TString inputDir = "output_paralell/test")
 {
   TString parFileName = inputDir + "/par.root";
   TString simFileName = inputDir + "/sim.root";
@@ -22,5 +22,5 @@ void eventDisplay(TString inputDir = "output")
   fMan->AddTask(Track);
   fMan->AddTask(Points);
 
-  fMan->Init();
+  fMan->Init(1,2,1000);
 }

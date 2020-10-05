@@ -19,7 +19,7 @@
 int  GetPdgCode(const int Z, const int A);
 void AddIon(const int pdg);                    //For PDG ion beam
 
-void sim_test(Int_t nEvents = 1, Int_t index = 0, TString outDir = "output")
+void sim_test(Int_t nEvents = 1, Int_t index = 1, TString outDir = "output")
 {
 
   // -----   Particle  --------------------------------------------------------
@@ -54,8 +54,14 @@ void sim_test(Int_t nEvents = 1, Int_t index = 0, TString outDir = "output")
   run->AddModule(cave);
 
   HERODetector* detector = new HERODetector("HEROdetector", kTRUE);
-  detector->SetGeometryFileName("HERO_detector.geo.root");
-  detector->AddSensetive("vCub");
+  detector->SetGeometryFileName("HERO_detector_Sphear.geo.root");
+  for (int i=1; i < 120;i++ ){
+     TString Scint, Metal;
+     Scint.Form("vScint_%i",i);
+     Metal.Form("vMetal_%i",i);
+     detector->AddSensetive(Scint);
+     detector->AddSensetive(Metal);
+  }
   run->AddModule(detector);
 
 // -----   Create PrimaryGenerator   --------------------------------------
