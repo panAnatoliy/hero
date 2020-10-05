@@ -19,32 +19,25 @@
 int  GetPdgCode(const int Z, const int A);
 void AddIon(const int pdg);                    //For PDG ion beam
 
-void sim(Int_t nEvents = 1, Int_t index = 0, TString outDir = "output", Int_t IonIndex = 1)
+void sim_test(Int_t nEvents = 1, Int_t index = 1, TString outDir = "output")
 {
 
   // -----   Particle  --------------------------------------------------------
-  Int_t pdgId = 2212; // proton 2212 // electron 11
-  Double32_t momentum = 13.; // GeV
-  Int_t curZ, curA;
-  switch(IonIndex) {
-    case 1 : curZ = 1; curA = 1; break;
-    case 2 : curZ = 2; curA = 4; break;
-    case 3 : curZ = 6; curA = 12; break;
-    case 4 : curZ = 26; curA = 56; break;
-    default : cerr << "index error" << endl; return ;
-  }
-  pdgId = GetPdgCode(curZ,curA);      // Set nuclear pdg for Ion
-  Double32_t kinEnergy = curA*momentum;
+  Int_t pdgId = 2112; // proton 2212 // electron 11
+  Double32_t momentum = 1000.; // GeV
+
+
+  pdgId = 2212;
+  //pdgId = GetPdgCode(82,207);      // Set nuclear pdg for Ion
+
   // ------------------------------------------------------------------------
 
 
   gRandom->SetSeed(index);
 
   //---------------------Files-----------------------------------------------
-  TString outFile;
-  outFile.Form("%s/sim_%d.root", outDir.Data(), index);
-  TString parFile;
-  parFile.Form("%s/par_%d.root", outDir.Data(), index);
+  TString outFile = outDir + "/sim.root";
+  TString parFile = outDir + "/par.root";
   // ------------------------------------------------------------------------
 
   // -----   Timer   --------------------------------------------------------
@@ -61,8 +54,14 @@ void sim(Int_t nEvents = 1, Int_t index = 0, TString outDir = "output", Int_t Io
   run->AddModule(cave);
 
   HERODetector* detector = new HERODetector("HEROdetector", kTRUE);
-  detector->SetGeometryFileName("HERO_detector.geo.root"); //For work whith Spherical detector. you needed to change to HERO_detector_Sphear.geo.root
-  detector->AddSensetive("vCub");                          // and vSphere
+  detector->SetGeometryFileName("HERO_detector_Sphear.geo.root");
+  for (int i=1; i < 120;i++ ){
+     TString Scint, Metal;
+     Scint.Form("vScint_%i",i);
+     Metal.Form("vMetal_%i",i);
+     detector->AddSensetive(Scint);
+     detector->AddSensetive(Metal);
+  }
   run->AddModule(detector);
 
 // -----   Create PrimaryGenerator   --------------------------------------

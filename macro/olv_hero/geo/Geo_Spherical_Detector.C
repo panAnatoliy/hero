@@ -1,8 +1,9 @@
 void Geo_Spherical_Detector()
 {
-    Double_t R_min = 0.;
-    Double_t R_max = 125.;
-    Double_t dz = 150.;
+    Double_t Scint_dz = 0.9;
+    Double_t Metal_dz = 0.1;
+    Int_t Num_Layers = 120.;
+    
     // Create a zero rotation
     TGeoRotation* ggZeroRotation = new TGeoRotation("ggZeroRotation");
     
@@ -30,22 +31,48 @@ void Geo_Spherical_Detector()
     FairGeoMedia*   geoMedia = geoFace->getMedia();
     FairGeoBuilder* geoBuild = geoLoad->getGeoBuilder();
     
+    FairGeoMedium    * air  = geoMedia->getMedium("air");
+    if ( ! air  ) Fatal("Main", "FairMedium air   not found");
+    geoBuild->createMedium(air);
+    TGeoMedium* Air = gGeoManager->GetMedium("air");
+    if ( !  Air ) Fatal("Main", "Medium  Air not found");
+    
     FairGeoMedium    * SCint  = geoMedia->getMedium("FscScintVB");
     if ( ! SCint ) Fatal("Main", "FairMedium FscScintVB not found");
     geoBuild->createMedium(SCint);
     TGeoMedium* Scint = gGeoManager->GetMedium("FscScintVB");
     if ( ! Scint ) Fatal("Main", "Medium FscScintVB not found");
     
+    FairGeoMedium    * Aluminum  = geoMedia->getMedium("aluminium");
+    if ( ! Aluminum ) Fatal("Main", "FairMedium Aluminum not found");
+    geoBuild->createMedium(Aluminum);
+    TGeoMedium* aluminum = gGeoManager->GetMedium("aluminium");
+    if ( ! aluminum ) Fatal("Main", "Medium aluminum not found");
     
+    TGeoVolume* vAir_Sphere = gGeoManager->MakeSphere("vAirSphere", Air, 0, 125, 0.,180.,0.,0.);
+    
+    TGeoVolume* vScint_Sphere_[Num_Layers], *vMetal_Sphere_[Num_Layers]; 
     // Shapes and volumes ---------------------------------------------------------------
-    
-    TGeoVolume* vSphere = gGeoManager->MakeSphere("vSphere", Scint, R_min, R_max, 0.,180.,0.,0.);
-    
+    for(int i=1 ; i< Num_Layers ; i++){
+        int j=i-1;
+        vScint_Sphere_[i] = gGeoManager->MakeSphere(Form("vScint_%i", i), Scint, 126-i*(Scint_dz+Metal_dz)-Scint_dz, 126-i*(Scint_dz+Metal_dz), 0.,180.,0.,0.);
+        vScint_Sphere_[i] ->SetFillColor(kGreen);
+        vScint_Sphere_[i] ->SetLineColor(kGreen);
+        vScint_Sphere_[i] ->SetTransparency(60);
+        vAir_Sphere ->AddNode(vScint_Sphere_[i],1);
+        
+        vMetal_Sphere_[i] = gGeoManager->MakeSphere(Form("vMetal_%i", i), Scint,125-i*(Scint_dz + Metal_dz), 126-i*(Scint_dz+Metal_dz)-Scint_dz, 0.,180.,0.,0.);
+        vMetal_Sphere_[i] ->SetFillColor(kRed);
+        vMetal_Sphere_[i] ->SetLineColor(kRed);
+        vMetal_Sphere_[i] ->SetTransparency(60);
+        vAir_Sphere ->AddNode(vMetal_Sphere_[i],1);
+        
+    }
     // Container for 1 detector
     TGeoVolumeAssembly* vDetContainer = new TGeoVolumeAssembly("vDetContainer");
     
     // Volume hierarchy -----------------------------------------------------------------
-    vDetContainer->AddNode(vSphere, 1);
+    vDetContainer->AddNode(vAir_Sphere, 1);
     
     top->AddNode(vDetContainer, 1);
     
@@ -55,7 +82,7 @@ void Geo_Spherical_Detector()
     gGeoManager->CheckOverlaps(0.001);
     gGeoManager->PrintOverlaps();
     gGeoManager->CheckGeometry();
-    gGeoManager->CheckGeometryFull();
+//     gGeoManager->CheckGeometryFull();
     
     gGeoManager->GetTopVolume()->Draw("ogl");
     
@@ -64,4 +91,3 @@ void Geo_Spherical_Detector()
     geoFile->Close();
     // --------------------------------------------------------------------------
 }
-
